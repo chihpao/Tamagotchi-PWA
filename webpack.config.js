@@ -1,39 +1,49 @@
+const path = require('path');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const WorkboxPlugin = require('workbox-webpack-plugin');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 
-module.exports = {
-  entry: './src/game.ts',
-  output: {
-    filename: 'bundle.js',
-    path: __dirname + '/dist'
-  },
-  resolve: {
-    extensions: ['.ts', '.js']
-  },
-  module: {
-    rules: [{
-      test: /\.ts$/,
-      use: 'ts-loader',
-      exclude: /node_modules/
-    }]
-  },
-  plugins: [
-    new CleanWebpackPlugin(),
-    new WorkboxPlugin.GenerateSW({
-      clientsClaim: true,
-      skipWaiting: true,
-      maximumFileSizeToCacheInBytes: 8 * 1024 * 1024, // 設定為 8MB
-      runtimeCaching: [{
-        urlPattern: /\.(js|html|json|png)$/,
-        handler: 'CacheFirst'
-      }]
-    })
-  ],
-  devServer: {
-    static: {
-      directory: __dirname + '/public'
+module.exports = (env, argv) => {
+  const isProduction = argv.mode === 'production';
+
+  return {
+    entry: './src/game.ts',
+    output: {
+      filename: 'bundle.js',
+      path: path.resolve(__dirname, 'dist')
     },
-    compress: true,
-    port: 8080
-  }
+    resolve: {
+      extensions: ['.ts', '.js']
+    },
+    module: {
+      rules: [
+        {
+          test: /\.ts$/,
+          use: 'ts-loader',
+          exclude: /node_modules/
+        }
+      ]
+    },
+    plugins: [
+      new CleanWebpackPlugin(),
+      new HtmlWebpackPlugin({
+        title: 'Tamagotchi PWA',
+        template: './src/index.html'
+      }),
+      // 僅在生產模式下啟用 Service Worker 生成
+      isProduction && new WorkboxPlugin.GenerateSW({
+        clientsClaim: true,
+        skipWaiting: true,
+      })
+    ].filter(Boolean),
+    devServer: {
+      static: {
+        directory: path.join(__dirname, 'dist')
+      },
+      compress: true,
+      port: 9000,
+      open: true
+    },
+    mode: argv.mode
+  };
 };
