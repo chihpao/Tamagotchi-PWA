@@ -1,7 +1,9 @@
+// 語言：JavaScript (webpack.config.js)
 const path = require('path');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const WorkboxPlugin = require('workbox-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 module.exports = (env, argv) => {
   const isProduction = argv.mode === 'production';
@@ -30,7 +32,12 @@ module.exports = (env, argv) => {
         title: 'Tamagotchi PWA',
         template: './src/index.html'
       }),
-      // 僅在生產模式下啟用 Service Worker 生成
+      new CopyWebpackPlugin({
+        patterns: [
+          { from: 'assets', to: 'assets' },
+          // 若有其他公共資源也可在此設定
+        ]
+      }),
       isProduction && new WorkboxPlugin.GenerateSW({
         clientsClaim: true,
         skipWaiting: true,

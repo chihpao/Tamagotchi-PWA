@@ -8,7 +8,7 @@ enum PetState {
 }
 
 class GameScene extends Phaser.Scene {
-  private pet!: Phaser.GameObjects.Sprite;
+  private chicken!: Phaser.GameObjects.Sprite;
   private state: PetState = PetState.Happy;
   private stateText!: Phaser.GameObjects.Text;
 
@@ -17,27 +17,39 @@ class GameScene extends Phaser.Scene {
   }
 
   preload() {
-    // 載入角色圖像與動畫精靈圖
-    this.load.image('pet_idle', 'assets/pet_idle.png');
-    this.load.spritesheet('pet_eat', 'assets/pet_eat.png', {
+    // 載入雞圖像與進食動畫精靈圖
+    this.load.image('chicken_idle', 'assets/chicken_idle.jpg');
+    this.load.spritesheet('chicken_eat', 'assets/chicken_eat.jpg', {
       frameWidth: 64,
       frameHeight: 64
     });
   }
 
   create() {
+    // 設定背景色以確認畫布是否正確顯示
+    this.cameras.main.setBackgroundColor('#24252A');
+    console.log('GameScene created');
+  
+    // 等待第一個使用者互動來啟動 Audio Context
+    this.input.once('pointerdown', () => {
+      const webAudio = this.sound as Phaser.Sound.WebAudioSoundManager;
+      if (webAudio.context.state === 'suspended') {
+        webAudio.context.resume().then(() => console.log('AudioContext resumed'));
+      }
+    });
+  
     // 建立進食動畫
     this.anims.create({
       key: 'eat',
-      frames: this.anims.generateFrameNumbers('pet_eat', { start: 0, end: 3 }),
+      frames: this.anims.generateFrameNumbers('chicken_eat', { start: 0, end: 3 }),
       frameRate: 5,
       repeat: 0
     });
     
-    // 建立角色精靈並設定互動
-    this.pet = this.add.sprite(400, 300, 'pet_idle');
-    this.pet.setInteractive();
-    this.pet.on('pointerdown', () => this.interact());
+    // 建立雞角色並設定互動
+    this.chicken = this.add.sprite(400, 300, 'chicken_idle');
+    this.chicken.setInteractive();
+    this.chicken.on('pointerdown', () => this.interact());
     
     // 顯示目前狀態文字
     this.stateText = this.add.text(10, 10, '狀態: 快樂', { fontSize: '20px', color: '#ffffff' });
@@ -56,17 +68,17 @@ class GameScene extends Phaser.Scene {
   }
 
   update() {
-    // 遊戲邏輯更新
+    // 遊戲邏輯更新，可擴充更多動態效果
   }
 
   private interact() {
-    // 當角色被點擊，根據當前狀態觸發不同互動
+    // 當雞角色被點擊，根據當前狀態觸發不同互動
     if (this.state === PetState.Hungry) {
       // 進食後回復快樂狀態
-      this.pet.play('eat');
+      this.chicken.play('eat');
       this.state = PetState.Happy;
     } else {
-      // 當角色不是飢餓時，加入隨機狀態變化增加趣味性
+      // 當雞不是飢餓時，使用隨機邏輯改變狀態
       const random = Phaser.Math.Between(0, 100);
       if (random < 30) {
         this.state = PetState.Sleepy;
@@ -113,7 +125,7 @@ const config: Phaser.Types.Core.GameConfig = {
 
 const game = new Phaser.Game(config);
 
-// Service Worker 註冊：僅在生產環境下註冊，避免 webpack watch 模式下重複生成
+// Service Worker 註冊：僅在生產環境下註冊
 if ('serviceWorker' in navigator && process.env.NODE_ENV === 'production') {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js')
