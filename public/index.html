@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>電子雞PWA</title>
+  <link rel="manifest" href="/manifest.json">
+</head>
+<body>
+  <div id="game-container"></div>
+  <script src="bundle.js"></script>
+  <script>
+    // 註冊Service Worker
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/service-worker.js');
+      });
+    }
+  </script>
+</body>
+</html>
